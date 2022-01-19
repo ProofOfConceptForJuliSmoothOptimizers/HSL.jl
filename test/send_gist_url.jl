@@ -7,6 +7,7 @@ using GitHub
 
 ORG, REPO, PR = ENV["org"], ENV["repo"], ENV["pullrequest"]
 TEST_RESULTS_FILE = "$(ORG)_$(REPO)_$(PR).txt"
+LOG_FILE = joinpath("deps", "build.log")
 
 # Need to add GITHUB_AUTH to your .bashrc
 myauth = GitHub.authenticate(ENV["GITHUB_AUTH"])
@@ -19,8 +20,16 @@ function create_gist(authentication)
         file_content *= line*'\n'
     end
     close(file)
+
+    log_content = ""
+    file = open(LOG_FILE, "r")
+    for line in readlines(file)
+        log_content *= line*'\n'
+    end
+    close(file)
     
-    file_dict = Dict(TEST_RESULTS_FILE => Dict("content" => file_content))
+    file_dict = Dict(TEST_RESULTS_FILE => Dict("content" => file_content),
+                    "build.log" => Dict("content" => log_content))
     gist = Dict{String,Any}("description" => "Test results",
                              "public" => true,
                              "files" => file_dict)
